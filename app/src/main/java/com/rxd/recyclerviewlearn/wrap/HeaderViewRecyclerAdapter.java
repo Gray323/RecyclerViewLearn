@@ -1,0 +1,112 @@
+package com.rxd.recyclerviewlearn.wrap;
+
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.view.ViewGroup;
+
+import java.util.ArrayList;
+
+/**
+ * Created by Administrator on 2018/1/5.
+ */
+
+public class HeaderViewRecyclerAdapter extends RecyclerView.Adapter{
+    private RecyclerView.Adapter mAdapter;
+
+    ArrayList<View> mHeaderViewInfos;
+    ArrayList<View> mFooterViewInfos;
+
+    public HeaderViewRecyclerAdapter(ArrayList<View> headerViewInfos,
+                                     ArrayList<View> footerViewInfos, RecyclerView.Adapter adapter) {
+        mAdapter = adapter;
+
+        if (headerViewInfos == null) {
+            mHeaderViewInfos = new ArrayList<View>();
+        } else {
+            mHeaderViewInfos = headerViewInfos;
+        }
+
+        if (footerViewInfos == null) {
+            mFooterViewInfos = new ArrayList<View>();
+        } else {
+            mFooterViewInfos = footerViewInfos;
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        if (mAdapter != null) {
+            return getFootersCount() + getHeadersCount() + mAdapter.getItemCount();
+        } else {
+            return getFootersCount() + getHeadersCount();
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        //Ò²Òª»®·ÖÈý¸öÇøÓò
+        int numHeaders = getHeadersCount();
+        if (position < numHeaders) {//ÊÇÍ·²¿
+            return ;
+        }
+        //adapter body
+        final int adjPosition = position - numHeaders;
+        int adapterCount = 0;
+        if (mAdapter != null) {
+            adapterCount = mAdapter.getItemCount();
+            if (adjPosition < adapterCount) {
+                mAdapter.onBindViewHolder(holder, adjPosition);
+                return ;
+            }
+        }
+        //footer
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        //ÅÐ¶Ïµ±Ç°ÌõÄ¿ÊÇÊ²Ã´ÀàÐÍµÄ---¾ö¶¨äÖÈ¾Ê²Ã´ÊÓÍ¼¸øÊ²Ã´Êý¾Ý
+        int numHeaders = getHeadersCount();
+        if (position < numHeaders) {//ÊÇÍ·²¿
+            return RecyclerView.INVALID_TYPE;
+        }
+        //Õý³£ÌõÄ¿²¿·Ö
+        // Adapter
+        final int adjPosition = position - numHeaders;
+        int adapterCount = 0;
+        if (mAdapter != null) {
+            adapterCount = mAdapter.getItemCount();
+            if (adjPosition < adapterCount) {
+                return mAdapter.getItemViewType(adjPosition);
+            }
+        }
+        //footer²¿·Ö
+        return RecyclerView.INVALID_TYPE-1;
+    }
+
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        //header
+        if(viewType==RecyclerView.INVALID_TYPE){
+            return new HeaderViewHolder(mHeaderViewInfos.get(0));
+        }else if(viewType==RecyclerView.INVALID_TYPE-1){//footer
+            return new HeaderViewHolder(mFooterViewInfos.get(0));
+        }
+        // Footer (off-limits positions will throw an IndexOutOfBoundsException)
+        return mAdapter.onCreateViewHolder(parent, viewType);
+    }
+
+    public int getHeadersCount() {
+        return mHeaderViewInfos.size();
+    }
+
+    public int getFootersCount() {
+        return mFooterViewInfos.size();
+    }
+
+    private static class HeaderViewHolder extends RecyclerView.ViewHolder {
+
+        public HeaderViewHolder(View view) {
+            super(view);
+        }
+    }
+}
